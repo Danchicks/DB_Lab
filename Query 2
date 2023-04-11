@@ -1,0 +1,77 @@
+SERT INTO Groups (group_id, group_name) VALUES 
+(1, 'A'),
+(2, 'B'),
+(3, 'C'),
+(4, 'D'),
+(5, 'E');
+
+USE [student_records]
+GO
+
+
+
+INSERT INTO Hobies (hobby_id, hobby)
+VALUES 
+(1, 'Swimming'),
+(2, 'Reading'),
+(3, 'Painting'),
+(4, 'Playing video games');
+USE [student_records]
+GO
+
+INSERT INTO Dormitory (room_id, room_num) VALUES 
+(1, '101A'),
+(2, '101B'),
+(3, '102A'),
+(4, '102B'),
+(5, '103A');
+USE [student_records]
+GO
+
+
+INSERT INTO Library (book_id, title, author, genre, price, a_status)
+VALUES 
+(1, 'To Kill a Mockingbird', 'Harper Lee', 'Fiction', 10.99, 1),
+(2, 'The Great Gatsby', 'F. Scott Fitzgerald', 'Fiction', 12.50, 1),
+(3, '1984', 'George Orwell', 'Science Fiction', 9.99, 0),
+(4, 'Pride and Prejudice', 'Jane Austen', 'Romance', 8.50, 1),
+(5, 'The Catcher in the Rye', 'J.D. Salinger', 'Fiction', 11.25, 0);
+USE [student_records]
+GO
+
+INSERT INTO Students (student_id, last_name, first_name, middle_name, student_card_num, birth_year, birth_place, address, gender, marital_status, scholarship, room_num, hobby, group_id, monitor_id)
+VALUES 
+(1, 'Smith', 'John', 'Doe', '1234567890', '2000-03-12', 'New York', '123 Main St', 'Male', NULL, 2500.00, 1, 2, 1, 1),
+(2, 'Johnson', 'Mary', 'Anne', '0987654321', '2001-05-18', 'Los Angeles', '456 Elm St', 'Female', 'Single', 2000.00, 2, 1, 2, 0),
+(3, 'Williams', 'Robert', 'Joseph', '1357908642', '1999-12-06', 'Chicago', '789 Oak St', 'Male', 'Married', 2800.00, 3, 3, 1, 0),
+(4, 'Brown', 'Sarah', 'Louise', '2468013579', '2002-08-01', 'Houston', '1010 Pine St', 'Female', NULL, 2200.00, 2, 2, 3, 0),
+(5, 'Jones', 'David', 'Michael', '9753102468', '1998-04-25', 'Boston', '321 Maple St', 'Male', 'Single', 1900.00, 4, 1, 2, 0);
+
+USE [student_records]
+GO
+INSERT INTO Borrow (student_id, book_id, borrow_date, return_date, loan_sum) VALUES  (1, 1, '2022-01-02', '2022-01-16', 12.50), (2, 2, '2022-02-04', '2022-02-18', 14.75), (3, 3, '2022-03-06', '2022-03-20', 8.25), (4, 4, '2022-04-08', '2022-04-22', 10.00);
+USE [student_records]
+GO
+
+
+INSERT INTO Teachers (teacher_id, last_name, first_name, middle_name, department) VALUES (1, 'Smith', 'John', 'William', 'Mathematics'), (2, 'Jones', 'David', 'Robert', 'English'), (3, 'Davis', 'Mary', 'Ann', 'Science');
+USE [student_records]
+GO
+
+INSERT INTO Subjects (subject_id, subject_name, teacher_id) 				VALUES (1, 'Calculus I', 1), (2, 'Introduction to Statistics', 1), (3, 'American Literature', 2), (4, 'British Literature', 2), (5, 'Biology', 3), (6, 'Chemistry', 3);
+
+USE [student_records]
+GO
+INSERT INTO Grades (student_id, subject_id, teacher_id, points, grade) VALUES (1, 1, 1, 87.5, 'B+'), (2, 1, 1, 94.2, 'A'), (3, 1, 1, 78.0, 'C+'), (4, 1, 1, 88.7, 'B+'), (5, 3, 2, 92.5, 'A');
+USE [student_records]
+GO
+INSERT INTO Rating (rating_id, student_id, points) VALUES 
+(1, 1, 3.5), 
+(2, 2, 3.2),
+ (3, 3, 3.9),
+ (4, 4, 3.7);
+
+
+
+USE [student_records]
+GO
