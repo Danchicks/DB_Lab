@@ -1,0 +1,93 @@
+CREATE TABLE Groups (
+    group_id INT PRIMARY KEY NOT NULL,
+    group_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE Hobies (
+    hobby_id INT PRIMARY KEY NOT NULL,
+    hobby VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE Dormitory (
+    room_id INT PRIMARY KEY NOT NULL,
+    room_num VARCHAR(50) NOT NULL UNIQUE,
+    room_capacity int CHECK(room_capacity > -1 AND room_capacity<4)
+);
+
+CREATE TABLE Library (
+    book_id INT PRIMARY KEY NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    author VARCHAR(50),
+    genre VARCHAR(50),
+	price DECIMAL(10, 2) NOT NULL,
+    a_status BIT NOT NULL
+);
+
+
+CREATE TABLE Students (
+    student_id INT PRIMARY KEY NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    middle_name VARCHAR(50) NOT NULL,
+    student_card_num VARCHAR(10) NOT NULL UNIQUE,
+    birth_year DATE NOT NULL,
+    birth_place VARCHAR(50) NOT NULL,
+    address VARCHAR(100) NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    marital_status VARCHAR(20),
+    scholarship BIT,
+    room_num INT,
+    hobby INT,
+    group_id INT,
+    monitor_id BIT,
+    FOREIGN KEY (group_id) REFERENCES Groups(group_id),
+	FOREIGN KEY (room_num) REFERENCES Dormitory(room_id),
+	FOREIGN KEY (hobby) REFERENCES Hobies(hobby_id)
+);
+
+CREATE TABLE Borrow (
+    student_id INT NOT NULL UNIQUE,
+    book_id INT NOT NULL UNIQUE,
+    borrow_date DATE,
+    return_date DATE,
+	loan_sum DECIMAL(5, 2) NOT NULL CHECK(loan_sum<101),
+    PRIMARY KEY (student_id, book_id),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id),
+    FOREIGN KEY (book_id) REFERENCES Library(book_id)
+);
+
+CREATE TABLE Teachers (
+    teacher_id INT PRIMARY KEY NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    middle_name VARCHAR(50) NOT NULL,
+    department VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Subjects (
+    subject_id INT PRIMARY KEY NOT NULL,
+    subject_name VARCHAR(50) NOT NULL,
+    teacher_id INT NOT NULL ,
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id)
+);
+
+CREATE TABLE Grades (
+    student_id INT NOT NULL UNIQUE,
+    subject_id INT NOT NULL,
+    teacher_id INT NOT NULL,
+    points DECIMAL(5, 2),
+    grade CHAR(2),
+    PRIMARY KEY (student_id, subject_id, teacher_id),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id),
+    FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id),
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id)
+);
+
+CREATE TABLE Rating (
+    rating_id INT PRIMARY KEY NOT NULL,
+    student_id INT NOT NULL UNIQUE,
+    points DECIMAL(5, 2),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id),
+    FOREIGN KEY (student_id) REFERENCES Grades(student_id)
+);
+
