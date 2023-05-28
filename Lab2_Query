@@ -1,0 +1,122 @@
+
+/*1 показати список книг де ціна менше 10 і книга доступна*/
+SELECT book_id, title, author, price
+FROM Library
+WHERE price < 10 AND a_status = 1
+ORDER BY price ASC;
+
+/* 2 показати список студентів з к-стю взятих книг */
+SELECT Students.student_id, last_name, first_name, COUNT(Borrow.book_id) as books_taken
+FROM Students
+LEFT JOIN Borrow ON Students.student_id = Borrow.student_id
+GROUP BY Students.student_id, last_name, first_name
+ORDER BY books_taken DESC;
+
+/*3 показати список студентів що живуть в кімнаті 101А належать до групи Б або мають хобі плавання*/
+SELECT last_name, first_name
+FROM Students
+LEFT JOIN Dormitory ON Students.room_num = Dormitory.room_id
+WHERE Dormitory.room_num = '101A' AND (Students.group_id = 2 OR Students.hobby = 1)
+ORDER BY last_name ASC;
+
+/*4 показати список студентів з к-стю отриманих оцінок у всіх предметах*/
+SELECT Students.last_name, Students.first_name, Subjects.subject_name, COUNT(Grades.points) as grade_count
+FROM Students
+LEFT JOIN Grades ON Students.student_id = Grades.student_id
+RIGHT JOIN Subjects ON Subjects.subject_id = Grades.subject_id
+GROUP BY Students.last_name, Students.first_name, Subjects.subject_name
+ORDER BY Students.last_name, Subjects.subject_name;
+
+ /* Оператор LIKE для вибору студентів з прізвищем, що починається на "J"*/
+SELECT * FROM Students
+WHERE last_name LIKE 'J%'
+
+/* Оператор BETWEEN для вибору студентів з роком народження від 1999 до 2002 року*/
+SELECT * FROM Students
+WHERE birth_year BETWEEN '1999-01-01' AND '2002-12-31'
+
+/*Оператор IN для вибору студентів з груп A та B*/
+SELECT * FROM Students
+WHERE group_id IN (1, 2)
+
+/*Оператор EXISTS для вибору студентів, які мають записи в таблиці Grades*/
+SELECT * FROM Students
+WHERE EXISTS (SELECT * FROM Grades WHERE Grades.student_id = Students.student_id)
+
+/*Оператор ALL для вибору студентів, які мають максимальну оцінку з математики*/
+SELECT * FROM Students
+WHERE student_id = ALL (SELECT student_id FROM Grades WHERE subject_id = 1 AND points = (SELECT MAX(points) FROM Grades WHERE subject_id = 1))
+
+/*Оператор ANY для вибору студентів, які мають оцінку з англійської мови вищу за 85 балів*/
+SELECT * FROM Students
+WHERE student_id = ANY (SELECT student_id FROM Grades WHERE subject_id = 2 AND points > 85)
+
+/*6 порахувати кількість студентів та вивести разом з назвою груп*/
+SELECT group_name, COUNT(*) as students_num
+FROM Students
+INNER JOIN Groups ON Students.group_id = Groups.group_id
+GROUP BY group_name;
+
+/*7 вибрати ім'я прізвище та номер студентського з студентів які проживають в кімнатах з чисельністю 2 з табл гуртожиток*/
+SELECT last_name, first_name, student_card_num
+FROM Students
+WHERE room_num IN (SELECT room_id FROM Dormitory WHERE room_capacity = 2);
+
+/*8 Цей запит виконує вибірку даних з таблиці "Students" разом з під-запитом, який повертає дані з таблиці "Groups". Він повертає імена та прізвища студентів разом з назвами їх груп.*/
+SELECT s.first_name, s.last_name, g.group_name
+FROM Students s
+JOIN (
+    SELECT group_id, group_name
+    FROM Groups
+) g ON s.group_id = g.group_id;
+
+/*9 Цей запит повертає імена вчителів разом з назвами предметів, які вони викладають. Результат впорядкований за прізвищем вчителя та назвою предмету.*/
+SELECT t.last_name AS teacher_last_name, s.subject_name
+FROM Teachers t
+JOIN Subjects s ON t.teacher_id = s.teacher_id
+ORDER BY t.last_name, s.subject_name;
+
+/*10 Цей запит перетворює рядки даних в стовпці, використовуючи функцію MAX разом з умовою CASE. Він повертає оцінки студентів за різні предмети у вигляді таблиці, де стовпці представляють різних студентів, а рядки відповідають різним предметам.*/
+SELECT subject_id,
+    MAX(CASE WHEN student_id = 1 THEN points END) AS student_1_points,
+    MAX(CASE WHEN student_id = 2 THEN points END) AS student_2_points,
+    MAX(CASE WHEN student_id = 3 THEN points END) AS student_3_points,
+    MAX(CASE WHEN student_id = 4 THEN points END) AS student_4_points,
+    MAX(CASE WHEN student_id = 5 THEN points END) AS student_5_points
+FROM Grades
+GROUP BY subject_id;
+
+/*11 Цей запит оновлює дані у таблиці "Students". Він змінює адресу студента з ідентифікатором 1 на нову адресу "New Address".*/
+UPDATE Students
+SET address = 'New Address'
+WHERE student_id = 1;
+
+/*12 Цей запит оновлює дані у таблиці "Students" з використанням даних з таблиці "Dormitory". Він змінює номер кімнати студента, який мешкає в кімнаті "102A", на номер кімнати "3".*/
+UPDATE Students
+SET room_num = 3
+FROM Students s
+JOIN Dormitory d ON s.room_num = d.room_id
+WHERE d.room_num = '102A';
+
+/*13 Цей запит додає новий запис до таблиці "Groups" з вказаними значеннями ідентифікатора групи та назвою групи.*/
+INSERT INTO Groups (group_id, group_name)
+VALUES (6, 'F');
+
+/*14 Запит додає записи до таблиці "Scholarship" з полями "scholarship_id", "s_date", "scholarship_sum" та "student_id", вибираючи значення з таблиці "Students" для студентів, що належать до групи з ідентифікатором 2, при цьому встановлюючи однакову дату ("2023-04-01") та суму стипендії ("500.00") для кожного запису.*/
+INSERT INTO Scholarship (scholarship_id, s_date, scholarship_sum, student_id)
+SELECT
+    student_id,
+    '2023-04-01' AS s_date,
+    500.00 AS scholarship_sum,
+    student_id
+FROM Students
+WHERE group_id = 2;
+
+/*Цей запит видаляє всі записи з таблиці "Library", очищуючи її від даних..*/
+DELETE FROM Library;
+
+/*.Цей запит видаляє записи з таблиці "Students", де значення ідентифікатора групи дорівнює 1, видаляючи студентів з цієї групи.*/
+DELETE FROM Students
+WHERE group_id = 1;
+
+
