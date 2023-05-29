@@ -1,0 +1,95 @@
+-- Створення ролі "Адміністратор"
+CREATE ROLE [Admin];
+
+-- Надання привілеїв для ролі "Адміністратор"
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Library] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Borrow] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Students] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Dormitory] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Hobies] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Groups] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Teachers] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Subjects] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Grades] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Rating] TO [Admin];
+GRANT SELECT, INSERT, UPDATE, DELETE ON [Scholarship] TO [Admin];
+
+-- Надання прав на керування об'єктами БД
+GRANT ALTER ANY SCHEMA TO [Admin];
+GRANT CREATE TABLE TO [Admin];
+GRANT CREATE PROCEDURE TO [Admin];
+
+-- Створення ролі "Викладач"
+CREATE ROLE [Teacher];
+
+-- Надання привілеїв для ролі "Викладач"
+GRANT SELECT, UPDATE ON [Students] TO [Teacher];
+GRANT SELECT, UPDATE ON [Subjects] TO [Teacher];
+GRANT SELECT, INSERT, UPDATE ON [Grades] TO [Teacher];
+GRANT SELECT, INSERT, UPDATE ON [Rating] TO [Teacher];
+
+
+-- Створення ролі "Студент"
+CREATE ROLE [Student];
+
+-- Надання привілеїв для ролі "Студент"
+GRANT SELECT ON [Students] TO [Student];
+GRANT SELECT ON [Grades] TO [Student];
+GRANT SELECT ON [Subjects] TO [Student];
+GRANT SELECT ON [Library] TO [Student];
+GRANT INSERT, UPDATE ON [Borrow] TO [Student];
+
+
+-- Створення користувача "AdminUser"
+CREATE LOGIN AdminUser WITH PASSWORD = 'AdminPassword';
+
+-- Створення співставлення між логіном і користувачем БД
+CREATE USER AdminUser FOR LOGIN AdminUser;
+
+-- Надання ролі "Адміністратор"
+EXEC sp_addrolemember 'Admin', 'AdminUser';
+
+-- Створення користувача "TeacherUser"
+CREATE LOGIN TeacherUser WITH PASSWORD = 'TeacherPassword';
+
+-- Створення співставлення між логіном і користувачем БД
+CREATE USER TeacherUser FOR LOGIN TeacherUser;
+
+-- Надання ролі "Викладач"
+EXEC sp_addrolemember 'Teacher', 'TeacherUser';
+
+-- Створення користувача "StudentUser"
+CREATE LOGIN StudentUser WITH PASSWORD = 'StudentPassword';
+
+-- Створення співставлення між логіном і користувачем БД
+CREATE USER StudentUser FOR LOGIN StudentUser;
+
+-- Надання ролі "Студент"
+EXEC sp_addrolemember 'Student', 'StudentUser';
+
+-- Відкликання привілею у користувача
+REVOKE INSERT, UPDATE, DELETE ON Library FROM AdminUser;
+
+-- Переконання у збереженні здатності користувача користуватися привілеєм через роль
+SELECT HAS_PERMS_BY_NAME('Library', 'OBJECT', 'INSERT') AS CanInsert,
+       HAS_PERMS_BY_NAME('Library', 'OBJECT', 'UPDATE') AS CanUpdate,
+       HAS_PERMS_BY_NAME('Library', 'OBJECT', 'DELETE') AS CanDelete
+FROM sys.tables
+WHERE name = 'Library';
+
+-- Відкликання ролі у користувача
+USE [lab111111];
+EXEC sp_droprolemember 'Teacher', 'TeacherUser';
+
+-- Переконання у збереженні персональних привілеїв користувача
+USE [lab111111];
+SELECT HAS_PERMS_BY_NAME('Students', 'OBJECT', 'SELECT') AS CanSelect,
+       HAS_PERMS_BY_NAME('Grades', 'OBJECT', 'SELECT') AS CanSelectGrades
+FROM sys.tables
+WHERE name IN ('Students', 'Grades');
+
+-- Видалення ролі
+DROP ROLE [Teacher];
+-- Видалення користувача
+DROP USER [TeacherUser];
+
