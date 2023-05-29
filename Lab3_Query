@@ -1,0 +1,67 @@
+UPDATE Rating
+SET points = (
+	SELECT AVG(points)
+	FROM Grades
+	WHERE Grades.student_id = Rating.student_id
+)
+
+CREATE PROCEDURE CalculateScholarship
+    @month DATE,
+    @student_id INT
+AS
+BEGIN
+    DECLARE @rating DECIMAL(5, 2)
+    DECLARE @scholarship_sum DECIMAL(10, 2)
+
+
+    SELECT @rating = points
+    FROM Rating
+    WHERE student_id = @student_id
+    
+    IF @rating >= 88 AND  @rating <100
+   	 SET @scholarship_sum = 3000
+    ELSE IF @rating > 80 AND  @rating <88
+   	 SET @scholarship_sum = 2000
+  ELSE IF @rating > 71 AND  @rating <80
+   	 SET @scholarship_sum = 1500
+    ELSE
+   	 SET @scholarship_sum = 0
+    
+    INSERT INTO Scholarship (scholarship_id, s_date, scholarship_sum, student_id)
+    VALUES (@student_id, @month, @scholarship_sum, @student_id)
+SELECT * FROM Scholarship;
+END
+
+EXEC CalculateScholarship '2023-04-01', 1;
+
+
+
+
+
+
+CREATE PROCEDURE CalculateAllScholarships
+    @month DATE
+AS
+BEGIN
+    DECLARE @student_id INT
+    DECLARE student_cursor CURSOR FOR
+    SELECT student_id
+    FROM Students
+ 
+
+    OPEN student_cursor
+    FETCH NEXT FROM student_cursor INTO @student_id
+    
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+   	 EXEC CalculateScholarship @month, @student_id
+   	 FETCH NEXT FROM student_cursor INTO @student_id
+
+    END
+    
+    CLOSE student_cursor
+    DEALLOCATE student_cursor
+
+END
+
+EXEC CalculateAllScholarships '2024-04-05';
