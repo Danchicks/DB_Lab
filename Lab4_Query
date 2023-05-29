@@ -1,0 +1,148 @@
+ALTER TABLE Groups
+ADD UCR VARCHAR(50),
+    DCR DATETIME,
+    ULC VARCHAR(50),
+    DLC DATETIME;
+
+ALTER TABLE Hobies
+ADD UCR VARCHAR(50),
+    DCR DATETIME,
+    ULC VARCHAR(50),
+    DLC DATETIME;
+
+
+ALTER TABLE Students
+ADD UCR VARCHAR(50),
+    DCR DATETIME,
+    ULC VARCHAR(50),
+    DLC DATETIME;
+
+-- Тригер для таблиці Groups
+CREATE TRIGGER trg_Groups_Insert
+ON Groups
+AFTER INSERT
+AS
+BEGIN
+    UPDATE Groups
+    SET UCR = SYSTEM_USER, DCR = GETDATE(), ULC = SYSTEM_USER, DLC = GETDATE()
+    FROM Groups
+    INNER JOIN inserted ON Groups.group_id = inserted.group_id;
+END;
+
+-- Тригер для таблиці Hobies
+CREATE TRIGGER trg_Hobies_Insert
+ON Hobies
+AFTER INSERT
+AS
+BEGIN
+    UPDATE Hobies
+    SET UCR = SYSTEM_USER, DCR = GETDATE(), ULC = SYSTEM_USER, DLC = GETDATE()
+    FROM Hobies
+    INNER JOIN inserted ON Hobies.hobby_id = inserted.hobby_id;
+END;
+
+-- Тригер для таблиці Students
+CREATE TRIGGER trg_Students_Insert
+ON Students
+AFTER INSERT
+AS
+BEGIN
+    UPDATE Students
+    SET UCR = SYSTEM_USER, DCR = GETDATE(), ULC = SYSTEM_USER, DLC = GETDATE()
+    FROM Students
+    INNER JOIN inserted ON Students.student_id = inserted.student_id;
+END;
+
+
+-- Тригер для оновлення полів ULC і DLC у таблиці Groups
+CREATE TRIGGER trg_Groups_Update
+ON Groups
+AFTER UPDATE
+AS
+BEGIN
+    UPDATE Groups
+    SET ULC = SYSTEM_USER, DLC = GETDATE()
+    FROM Groups
+    INNER JOIN inserted ON Groups.group_id = inserted.group_id;
+END;
+
+-- Тригер для оновлення полів ULC і DLC у таблиці Hobies
+CREATE TRIGGER trg_Hobies_Update
+ON Hobies
+AFTER UPDATE
+AS
+BEGIN
+    UPDATE Hobies
+    SET ULC = SYSTEM_USER, DLC = GETDATE()
+    FROM Hobies
+    INNER JOIN inserted ON Hobies.hobby_id = inserted.hobby_id;
+END;
+
+-- Тригер для оновлення полів ULC і DLC у таблиці Students
+CREATE TRIGGER trg_Students_Update
+ON Students
+AFTER UPDATE
+AS
+BEGIN
+    UPDATE Students
+    SET ULC = SYSTEM_USER, DLC = GETDATE()
+    FROM Students
+    INNER JOIN inserted ON Students.student_id = inserted.student_id;
+END;
+
+-- Створення послідовності для генерації нових значень student_id
+CREATE SEQUENCE student_id_sequence START WITH 1 INCREMENT BY 1;
+
+-- Створення тригера для заповнення student_id
+CREATE TRIGGER trg_Students_Insert_id
+ON Students
+INSTEAD OF INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Вставка даних з вказаною послідовністю значень student_id
+    INSERT INTO Students (student_id, last_name, first_name, middle_name, student_card_num, birth_year, birth_place, address, gender, marital_status, room_num, hobby, group_id, monitor_id)
+    SELECT NEXT VALUE FOR student_id_sequence, last_name, first_name, middle_name, student_card_num, birth_year, birth_place, address, gender, marital_status, room_num, hobby, group_id, monitor_id
+    FROM inserted;
+END;
+
+
+
+CREATE TRIGGER CheckRoomCapacity
+ON Students
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT room_num, COUNT(*) AS student_count
+        FROM Students
+        WHERE room_num IS NOT NULL
+        GROUP BY room_num
+        HAVING COUNT(*) > 3
+    )
+    BEGIN
+        RAISERROR('In one room, the number of students cannot exceed three.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
+
+CREATE TRIGGER CheckBorrowedBooksSum
+ON Borrow
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT student_id
+        FROM (
+            SELECT student_id, SUM(loan_sum) AS total_loan_sum
+            FROM Borrow
+            GROUP BY student_id
+        ) AS T
+        WHERE total_loan_sum > 100
+    )
+    BEGIN
+        RAISERROR('A student cannot borrow books with a total sum exceeding 100.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
